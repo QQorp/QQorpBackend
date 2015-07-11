@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"github.com/garyburd/redigo/redis"
 	"strconv"
 	"time"
 )
@@ -50,4 +51,3 @@ func Update(ObjectId string, Score int64) (err error) {
 func Delete(ObjectId string) {
 	delete(Objects, ObjectId)
 }
-

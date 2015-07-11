@@ -1,8 +1,8 @@
 package main
 
 import (
-	_ "github.com/QQorp/QQorpBackend/app/docs"
-	_ "github.com/QQorp/QQorpBackend/app/routers"
+	_ "github.com/QQorp/QQorpBackend/docs"
+	_ "github.com/QQorp/QQorpBackend/routers"
 
 	"github.com/astaxie/beego"
 )

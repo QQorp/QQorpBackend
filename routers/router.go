@@ -8,7 +8,7 @@
 package routers
 
 import (
-	"github.com/QQorp/QQorpBackend/app/controllers"
+	"github.com/QQorp/QQorpBackend/controllers"
 
 	"github.com/astaxie/beego"
 )

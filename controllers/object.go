@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/QQorp/QQorpBackend/app/models"
+	"github.com/QQorp/QQorpBackend/models"
 
 	"github.com/astaxie/beego"
 )
