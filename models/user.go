@@ -1,33 +1,41 @@
 package models
 
 import (
-	"errors"
-	"strconv"
-	"time"
+	"fmt"
+	"github.com/nu7hatch/gouuid"
 )
-
-var (
-	UserList map[string]*User
-)
-
-func init() {
-	UserList = make(map[string]*User)
-	u := User{"user_11111", "astaxie", "11111", Profile{"male", 20, "Singapore", "astaxie@gmail.com"}}
-	UserList["user_11111"] = &u
-}
 
 type User struct {
-	Id       string
+	UID      string
 	Username string
 	Password string
-	Profile  Profile
 }
 
-type Profile struct {
-	Gender  string
-	Age     int
-	Address string
-	Email   string
+func CreateUser(username string, password string) (*User, error) {
+	if username != "" && password != "" {
+		u, err := uuid.NewV4()
+		if err == nil {
+			user := &User{
+				Username: user,
+				Password: password,
+				UID:      u.String(),
+			}
+			conn := RedisPool.Get()
+			defer conn.Close()
+
+			_, err := conn.Do("SADD", "Users", user.UID)
+			if err == nil {
+				_, err := c.Do("HMSET", user.UID, "Username", user.Username, "Password", user.Password)
+				if err == nil {
+					return user, nil
+				}
+				return nil, fmt.Errorf("Cannot set the user name")
+			}
+			return nil, fmt.Errorf("Cannot add the user")
+		}
+		return nil, fmt.Errorf("Cannot create UID")
+	}
+	return nil, fmt.Errorf("Users's name or password cannot be empty")
 }
 
 func AddUser(u User) string {
