@@ -14,12 +14,12 @@ type User struct {
 // CreateUser: creates an user and add it to redis
 func CreateUser(username string, password string) (*User, error) {
 	if username != "" && password != "" {
-		u, err := uuid.NewV4()
+		uid, err := uuid.NewV4()
 		if err == nil {
 			user := &User{
 				Username: user,
 				Password: password,
-				UID:      u.String(),
+				UID:      uid.String(),
 			}
 			conn := RedisPool.Get()
 			defer conn.Close()
