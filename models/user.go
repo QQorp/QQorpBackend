@@ -26,7 +26,7 @@ func CreateUser(username string, password string) (*User, error) {
 
 			_, err := conn.Do("SADD", "Users", user.UID)
 			if err == nil {
-				_, err := c.Do("HMSET", user.UID, "Username", user.Username, "Password", user.Password)
+				_, err := conn.Do("HMSET", user.UID, "Username", user.Username, "Password", user.Password)
 				if err == nil {
 					return user, nil
 				}
@@ -42,12 +42,12 @@ func CreateUser(username string, password string) (*User, error) {
 // GetUser: returns an user if it exists
 func GetUser(UID string) (*User, error) {
 	if UID != "" {
-		c := RedisPool.Get()
-		defer c.Close()
+		conn := RedisPool.Get()
+		defer conn.Close()
 
-		userExist, err := redis.Int(c.Do("SISMEMBER", "Users", UID))
+		userExist, err := redis.Int(conn.Do("SISMEMBER", "Users", UID))
 		if err == nil && userExist == 1 {
-			username, err := redis.String(c.Do("HGET", UID, "Username"))
+			username, err := redis.String(conn.Do("HGET", UID, "Username"))
 			if err == nil {
 				user := &User{
 					UID:      UID,
@@ -60,4 +60,24 @@ func GetUser(UID string) (*User, error) {
 		return nil, fmt.Errorf("User does not exists")
 	}
 	return nil, fmt.Errorf("UID not provided")
+}
+
+// GetAllUsers: return all the user in the database
+func GetAllUsers() ([]*User, error) {
+	conn := RedisPool.Get()
+	defer conn.Close()
+
+	usersName, err := redis.Strings(c.Do("SMEMBERS", "Users"))
+	if err == nil {
+		var res []*User
+		for _, item := range usersName {
+			user, err := GetUser(item)
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, user)
+		}
+		return res, nil
+	}
+	return nil, fmt.Errorf("Cannot get all users")
 }
