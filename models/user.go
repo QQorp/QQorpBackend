@@ -11,6 +11,7 @@ type User struct {
 	Password string
 }
 
+// CreateUser: creates an user and add it to redis
 func CreateUser(username string, password string) (*User, error) {
 	if username != "" && password != "" {
 		u, err := uuid.NewV4()
@@ -38,57 +39,25 @@ func CreateUser(username string, password string) (*User, error) {
 	return nil, fmt.Errorf("Users's name or password cannot be empty")
 }
 
-func AddUser(u User) string {
-	u.Id = "user_" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	UserList[u.Id] = &u
-	return u.Id
-}
+// GetUser: returns an user if it exists
+func GetUser(UID string) (*User, error) {
+	if UID != "" {
+		c := RedisPool.Get()
+		defer c.Close()
 
-func GetUser(uid string) (u *User, err error) {
-	if u, ok := UserList[uid]; ok {
-		return u, nil
+		userExist, err := redis.Int(c.Do("SISMEMBER", "Users", UID))
+		if err == nil && userExist == 1 {
+			username, err := redis.String(c.Do("HGET", UID, "Username"))
+			if err == nil {
+				user := &User{
+					UID:      UID,
+					Username: username,
+				}
+				return user, nil
+			}
+			return nil, fmt.Errorf("Cannot get username")
+		}
+		return nil, fmt.Errorf("User does not exists")
 	}
-	return nil, errors.New("User not exists")
-}
-
-func GetAllUsers() map[string]*User {
-	return UserList
-}
-
-func UpdateUser(uid string, uu *User) (a *User, err error) {
-	if u, ok := UserList[uid]; ok {
-		if uu.Username != "" {
-			u.Username = uu.Username
-		}
-		if uu.Password != "" {
-			u.Password = uu.Password
-		}
-		if uu.Profile.Age != 0 {
-			u.Profile.Age = uu.Profile.Age
-		}
-		if uu.Profile.Address != "" {
-			u.Profile.Address = uu.Profile.Address
-		}
-		if uu.Profile.Gender != "" {
-			u.Profile.Gender = uu.Profile.Gender
-		}
-		if uu.Profile.Email != "" {
-			u.Profile.Email = uu.Profile.Email
-		}
-		return u, nil
-	}
-	return nil, errors.New("User Not Exist")
-}
-
-func Login(username, password string) bool {
-	for _, u := range UserList {
-		if u.Username == username && u.Password == password {
-			return true
-		}
-	}
-	return false
-}
-
-func DeleteUser(uid string) {
-	delete(UserList, uid)
+	return nil, fmt.Errorf("UID not provided")
 }
