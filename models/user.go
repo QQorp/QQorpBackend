@@ -67,7 +67,7 @@ func GetAllUsers() ([]*User, error) {
 	conn := RedisPool.Get()
 	defer conn.Close()
 
-	usersName, err := redis.Strings(c.Do("SMEMBERS", "Users"))
+	usersName, err := redis.Strings(conn.Do("SMEMBERS", "Users"))
 	if err == nil {
 		var res []*User
 		for _, item := range usersName {
@@ -80,4 +80,21 @@ func GetAllUsers() ([]*User, error) {
 		return res, nil
 	}
 	return nil, fmt.Errorf("Cannot get all users")
+}
+
+// RemoveUser: remove an user if exists
+func RemoveUser(UID string) error {
+	if UID != "" {
+		conn := RedisPool.Get()
+		defer conn.Close()
+
+		userExist, err := redis.Int(conn.Do("SISMEMBER", "Users", UID))
+		if err == nil && userExist == 1 {
+			redis.String(conn.DO("SREM", "Users", UID))
+			redis.String(conn.Do("HDEL", UID, "Username"))
+			return nil
+		}
+		return fmt.Errorf("User does not exists")
+	}
+	return fmt.Errorf("UID not provided")
 }
